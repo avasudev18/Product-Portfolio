@@ -73,7 +73,7 @@ def main():
             "https://avasudev18.github.io/PFolioAV.github.io/index.html",
         )
 
- st.divider()
+st.divider()
 
     # -----------------------------------------------------
     # CORE EXPERTISE

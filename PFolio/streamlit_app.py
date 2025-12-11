@@ -73,47 +73,80 @@ def main():
             "https://avasudev18.github.io/PFolioAV.github.io/index.html",
         )
 
-st.divider()
-
     # -----------------------------------------------------
-    # CORE EXPERTISE
+    # (Optional) CORE EXPERTISE SECTION
     # -----------------------------------------------------
-st.subheader("Explore the Portfolio")
+    st.divider()
+    st.subheader("Core Expertise")
 
-accessible_button_style = """
-    display: inline-block;
-    padding: 12px 22px;
-    margin: 6px 6px 12px 0px;
-    background-color: #1f77b4;      /* Accessible blue */
-    color: #ffffff ;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(
+            """
+### Product Leadership
+- Product strategy & long-range vision  
+- Outcome-driven roadmapping & prioritization  
+- Cross-functional collaboration (Eng, Design, CS, Sales)  
+
+### AI / Data
+- AI agents & generative AI workflows  
+- Retrieval-Augmented Generation (RAG)  
+- Recommendation engines & forecasting  
 """
+        )
+    with c2:
+        st.markdown(
+            """
+### Enterprise Systems
+- Oracle Field Service (OFS/OFSC)  
+- ERP & commerce integrations (Infor, Karmak, SAP, DST)  
 
-st.markdown(
-    f"""
-    <a href="?page=Bio" style="{accessible_button_style}">🧑‍💼 Bio</a>
-    <a href="?page=Live_Implementations" style="{accessible_button_style}">💼 Live Implementations</a>
-    <a href="?page=Customer_Success_Leadership" style="{accessible_button_style}">📊 Customer Success Leadership</a>
-    <br>
-    <a href="?page=Thought_Leadership_&_Innovation_Lab" style="{accessible_button_style}">🤖 Innovation Lab</a>
-    <a href="?page=Experience_&_Education" style="{accessible_button_style}">📜 Experience & Education</a>
-    """,
-    unsafe_allow_html=True,
-)
+### Customer Success & Revenue
+- Onboarding & adoption frameworks  
+- Renewal, expansion & churn prevention  
+- KPI-driven operations (NRR, GRR, CSAT, SLA)  
+"""
+        )
 
-st.divider()
+    # -----------------------------------------------------
+    # BUTTONS AT THE BOTTOM
+    # -----------------------------------------------------
+    st.divider()
+    st.subheader("Explore the Portfolio")
+
+    accessible_button_style = """
+        display: inline-block;
+        padding: 12px 22px;
+        margin: 6px 6px 12px 0px;
+        background-color: #1f77b4;      /* Accessible blue */
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+    """
+
+    st.markdown(
+        f"""
+        <a href="?page=Bio" style="{accessible_button_style}">🧑‍💼 Bio</a>
+        <a href="?page=Live_Implementations" style="{accessible_button_style}">💼 Live Implementations</a>
+        <a href="?page=Customer_Success_Leadership" style="{accessible_button_style}">📊 Customer Success Leadership</a>
+        <br>
+        <a href="?page=Thought_Leadership_&_Innovation_Lab" style="{accessible_button_style}">🤖 Innovation Lab</a>
+        <a href="?page=Experience_&_Education" style="{accessible_button_style}">📜 Experience & Education</a>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # -----------------------------------------------------
     # FOOTER INFO
     # -----------------------------------------------------
-st.info(
-        "Use the sidebar or the cards above to navigate Anil's portfolio: "
-        "Bio, live product implementations, customer success leadership, "
-        "innovation lab, and full experience and education."
- )
+    st.divider()
+    st.info(
+        "Use the sidebar or the navigation buttons above to explore the portfolio: "
+        "Bio, live implementations, customer success leadership, innovation lab, "
+        "and full experience & education."
+    )
 
 
 if __name__ == "__main__":

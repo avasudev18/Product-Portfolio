@@ -41,7 +41,7 @@ st.subheader("Contact")
 st.markdown(
     """
 **Location:** Denver, CO  
-**Email:** your.email@example.com  
+**Email:** anilvasudev2001@gmail.com  
 **LinkedIn:** https://www.linkedin.com/in/anil-vasudevakurup/  
 """
 )

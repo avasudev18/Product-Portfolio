@@ -104,7 +104,7 @@ st.markdown(
 )
 
 
-    st.divider()
+st.divider()
 
     # -----------------------------------------------------
     # FOOTER INFO

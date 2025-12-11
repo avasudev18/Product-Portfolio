@@ -78,178 +78,31 @@ def main():
     # -----------------------------------------------------
     # CORE EXPERTISE
     # -----------------------------------------------------
-    st.subheader("Core Expertise")
+st.subheader("Explore the Portfolio")
 
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.markdown(
-            """
-### Product Leadership
-- Product strategy & long-range vision  
-- Outcome-driven roadmapping & prioritization  
-- Cross-functional collaboration (Eng, Design, CS, Sales)  
-- Go-to-market planning & launch execution  
-
-### AI / Data
-- AI agents & generative AI workflows  
-- Retrieval-Augmented Generation (RAG) pipelines  
-- Recommendation engines & personalization  
-- Predictive analytics & forecasting  
+button_style = """
+    display: inline-block;
+    padding: 12px 22px;
+    margin: 6px;
+    background-color: #0d6efd;
+    color: white !important;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1rem;
 """
-        )
 
-    with c2:
-        st.markdown(
-            """
-### Enterprise Systems
-- Oracle Field Service (OFS/OFSC)  
-- ERP & commerce integrations (Infor, Karmak, SAP, DST)  
-- Large-scale SaaS platform design  
+st.markdown(
+    f"""
+    <a href="?page=Bio" style="{button_style}">🧑‍💼 Bio</a>
+    <a href="?page=Live_Implementations" style="{button_style}">💼 Live Implementations</a>
+    <a href="?page=Customer_Success_Leadership" style="{button_style}">📊 Customer Success Leadership</a>
+    <br>
+    <a href="?page=Thought_Leadership_&_Innovation_Lab" style="{button_style}">🤖 Innovation Lab</a>
+    <a href="?page=Experience_&_Education" style="{button_style}">📜 Experience & Education</a>
+    """,
+    unsafe_allow_html=True,
+)
 
-### Customer Success & Revenue
-- Onboarding & adoption frameworks  
-- Renewal, expansion & churn prevention strategy  
-- KPI-driven operations (NRR, GRR, CSAT, SLA)  
-"""
-        )
-
-    st.divider()
-
-    # -----------------------------------------------------
-    # NAVIGATION CARDS TO OTHER PAGES
-    # -----------------------------------------------------
-    st.subheader("Explore the Portfolio")
-
-    # First row: Bio, Live Implementations, Customer Success
-    row1 = st.columns(3)
-
-    with row1[0]:
-        st.markdown(
-            """
-            <div style="
-                padding:16px;
-                border-radius:12px;
-                border:1px solid #e0e0e0;
-                background-color:#fafafa;
-                height:100%;
-            ">
-                <h4>🧑‍💼 Bio</h4>
-                <p style="font-size:0.9rem;">
-                    Learn about Anil's background, leadership philosophy,
-                    and approach to product strategy.
-                </p>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<a href="?page=Bio"><button style="padding:6px 12px;">Open</button></a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with row1[1]:
-        st.markdown(
-            """
-            <div style="
-                padding:16px;
-                border-radius:12px;
-                border:1px solid #e0e0e0;
-                background-color:#fafafa;
-                height:100%;
-            ">
-                <h4>💼 Live Implementations</h4>
-                <p style="font-size:0.9rem;">
-                    Case studies in AI commerce, parts catalog integration,
-                    field service transformation, and dynamic pricing.
-                </p>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<a href="?page=Live_Implementations">'
-            '<button style="padding:6px 12px;">Open</button></a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with row1[2]:
-        st.markdown(
-            """
-            <div style="
-                padding:16px;
-                border-radius:12px;
-                border:1px solid #e0e0e0;
-                background-color:#fafafa;
-                height:100%;
-            ">
-                <h4>📊 Customer Success Leadership</h4>
-                <p style="font-size:0.9rem;">
-                    Portfolio transformation, operational frameworks,
-                    and KPI-driven customer success at scale.
-                </p>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<a href="?page=Customer_Success_Leadership">'
-            '<button style="padding:6px 12px;">Open</button></a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # Second row: Innovation Lab, Experience & Education
-    row2 = st.columns(2)
-
-    with row2[0]:
-        st.markdown(
-            """
-            <div style="
-                padding:16px;
-                border-radius:12px;
-                border:1px solid #e0e0e0;
-                background-color:#fafafa;
-                height:100%;
-            ">
-                <h4>🤖 Thought Leadership & Innovation Lab</h4>
-                <p style="font-size:0.9rem;">
-                    Multi-agent AI workflows, prototypes, and
-                    future-facing product experiments.
-                </p>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<a href="?page=Thought_Leadership_&_Innovation_Lab">'
-            '<button style="padding:6px 12px;">Open</button></a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with row2[1]:
-        st.markdown(
-            """
-            <div style="
-                padding:16px;
-                border-radius:12px;
-                border:1px solid #e0e0e0;
-                background-color:#fafafa;
-                height:100%;
-            ">
-                <h4>📜 Experience & Education</h4>
-                <p style="font-size:0.9rem;">
-                    Career milestones, certifications, and formal
-                    academic background.
-                </p>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<a href="?page=Experience_&_Education">'
-            '<button style="padding:6px 12px;">Open</button></a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.divider()
 

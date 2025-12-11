@@ -1,4 +1,5 @@
 import streamlit as st
+from pathlib import Path
 
 st.set_page_config(
     page_title="Anil Vasudevakurup | Product Management Portfolio",
@@ -12,82 +13,35 @@ LOCATION = "Denver, CO"
 EMAIL = "your.email@example.com"
 LINKEDIN_URL = "https://www.linkedin.com/in/anil-vasudevakurup/"
 
-HEADSHOT_PATH = "assets/anil_headshot.jpg"
+HEADSHOT_PATH = Path("assets/anil_headshot.jpg")  # local image
 
 
 def main():
-
-    # ---------- HEADER ----------
     cols = st.columns([1, 3])
 
     with cols[0]:
-        try:
-            st.image(HEADSHOT_PATH, use_container_width=True)
-        except:
-            pass
+        if HEADSHOT_PATH.is_file():
+            st.image(str(HEADSHOT_PATH), use_container_width=True)
+        else:
+            # Simple fallback so you see *something*
+            st.markdown(
+                """
+                <div style="font-size:60px; text-align:center;">👤</div>
+                <p style="text-align:center; color:gray;">Upload assets/anil_headshot.jpg</p>
+                """,
+                unsafe_allow_html=True,
+            )
 
     with cols[1]:
         st.title(NAME)
         st.write(ROLE)
         st.markdown(
-            f"**{LOCATION}** • 📧 `{EMAIL}` • "
-            f"[LinkedIn]({LINKEDIN_URL})"
+            f"**{LOCATION}** • 📧 `{EMAIL}` • [LinkedIn]({LINKEDIN_URL})"
         )
 
     st.divider()
 
-    # ---------- QUICK LINKS ----------
-    st.subheader("Quick Portfolio Links")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.link_button("🔗 LinkedIn", LINKEDIN_URL)
-    with col2:
-        st.link_button("📄 Download Resume", "#")
-    with col3:
-        st.link_button("🌐 Portfolio Website",
-                       "https://avasudev18.github.io/PFolioAV.github.io/index.html")
-
-    st.divider()
-
-    # ---------- CORE EXPERTISE ----------
-    st.subheader("Core Expertise")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown(
-            """
-### Product Leadership  
-- Strategy & Vision  
-- Roadmapping & Prioritization  
-- Cross-Functional Alignment  
-- Go-to-Market Execution  
-
-### AI / Data  
-- AI Agents & GenAI  
-- RAG & Retrieval Pipelines  
-- Recommendations & Forecasting  
-            """
-        )
-
-    with col2:
-        st.markdown(
-            """
-### Enterprise Systems  
-- Oracle Field Service  
-- ERP Commerce Integrations  
-- SaaS Platform Architecture  
-
-### Customer Success  
-- Adoption Frameworks  
-- Renewal Strategy  
-- NRR / GRR / CSAT Analytics  
-            """
-        )
-
-    st.info("Use the **sidebar navigation** to explore Bio, Case Studies, Leadership Work, Innovation Lab, and Experience.")
+    # ... (rest of your existing Home page code here) ...
 
 
 if __name__ == "__main__":

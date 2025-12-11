@@ -22,7 +22,7 @@ ROLE = (
     "ERP Integrations | Customer Success Leader"
 )
 LOCATION = "Denver, CO"
-EMAIL = "your.email@example.com"   # TODO: update
+EMAIL = "anilvasudev2001@gmail.com"   # TODO: update
 LINKEDIN_URL = "https://www.linkedin.com/in/anil-vasudevakurup/"
 
 

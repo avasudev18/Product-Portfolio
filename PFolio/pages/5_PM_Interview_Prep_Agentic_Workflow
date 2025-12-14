@@ -8,8 +8,8 @@ import streamlit as st
 # CONFIG
 # ----------------------------
 API_BASE = "https://pm-interview-prep-workflow-with-smart-decis-238b266e.crewai.com"
-DEFAULT_TOKEN = "PUT_YOUR_TOKEN_HERE"  # better: use st.secrets or env var
-
+# DEFAULT_TOKEN = "PUT_YOUR_TOKEN_HERE"  # better: use st.secrets or env var
+DEFAULT_TOKEN = "2c5347f69d50"  # better: use st.secrets or env var
 st.set_page_config(page_title="PM Interview Prep Workflow Runner", layout="wide")
 
 def get_token() -> str:

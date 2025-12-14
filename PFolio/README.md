@@ -13,7 +13,7 @@ adapted from the static GitHub Pages site.
 │  ├─ 2_📊_Customer_Success_Leadership
 │  ├─ 3_🤖_Thought_Leadership_&_Innovation_Lab
 │  └─ 4_📜_Experience_&_Education
-│  └─ 5_PM Interview Prep Agentic Workflow
+│  └─ 5_PM_Interview_Prep_Agentic_Workflow
 ├─ assets/
 │  └─ anil_headshot              
 ├─ requirements.txt

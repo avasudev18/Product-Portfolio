@@ -138,7 +138,7 @@ with colB:
     start_btn = st.button("Start workflow (POST /kickoff)", type="primary")
     poll_seconds = st.slider("Polling interval (seconds)", 1, 10, 2)
     
-    st.write("start_btn =", start_btn)
+    #st.write("start_btn =", start_btn) # Hiding display 
 # ----------------------------
 # Actions
 # ----------------------------

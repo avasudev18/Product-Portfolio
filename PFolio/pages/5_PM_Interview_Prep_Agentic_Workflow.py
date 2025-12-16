@@ -87,13 +87,48 @@ colA, colB = st.columns([1, 1], gap="large")
 
 with colA:
     st.subheader("Inputs")
-    resume_file = st.file_uploader("Upload Resume (TXT/PDF/DOCX)", type=["txt", "pdf", "docx"])
-    pasted_resume = st.text_area("Or paste resume text", height=220, placeholder="Paste resume text here...")
 
-    company = st.text_input("Company Name", placeholder="e.g., Comcast")
-    job_desc = st.text_area("Job Description", height=280, placeholder="Paste the job description here...")
+    # Required API fields (as per your screenshot)
+    candidate_name = st.text_input(
+        "candidate_name *",
+        placeholder="Anilkumar Vasudevakurup"
+    )
+
+    job_title = st.text_input(
+        "job_title *",
+        placeholder="Customer Success Manager"
+    )
+
+    company_name = st.text_input(
+        "company_name *",
+        placeholder="NiCE"
+    )
+
+    st.divider()
+
+    # Optional supporting inputs (resume + job description)
+    resume_file = st.file_uploader(
+        "Upload Resume (TXT/PDF/DOCX)",
+        type=["txt", "pdf", "docx"]
+    )
+
+    pasted_resume = st.text_area(
+        "Or paste resume text",
+        height=220,
+        placeholder="Paste resume text here..."
+    )
+
+    job_desc = st.text_area(
+        "Job Description",
+        height=280,
+        placeholder="Paste the job description here..."
+    )
+
+    st.divider()
 
     show_inputs_schema = st.button("Fetch required inputs schema (GET /inputs)")
+
+
 
 with colB:
     st.subheader("Run + Results")

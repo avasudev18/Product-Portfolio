@@ -1,6 +1,31 @@
 import streamlit as st
 from pathlib import Path
 
+#-----------------------NEW---------------------------------
+
+def custom_sidebar():
+    st.sidebar.title("Portfolio Navigation")
+
+    # Normal pages (still shown automatically by Streamlit)
+    st.sidebar.divider()
+
+    # ---- Custom submenu simulation ----
+    with st.sidebar.expander("🤖 Thought Leadership & Innovation Lab", expanded=False):
+        st.page_link(
+            "pages/3_🤖_Thought_Leadership_&_Innovation_Lab.py",
+            label="AI-Powered Agentic Interview Workflow",
+            icon="🧠"
+        )
+        st.page_link(
+            "pages/5_PM_Interview_Prep_Agentic_Workflow.py",
+            label="SmartGardener – Personalized Gardening Assistant",
+            icon="🌱"
+        )
+
+    st.sidebar.divider()
+
+#------------------------------End NEW-----------------------------------
+
 # ---------------------------------------------------------
 # PAGE CONFIG
 # ---------------------------------------------------------
@@ -9,6 +34,8 @@ st.set_page_config(
     page_icon="💼",
     layout="wide"
 )
+custom_sidebar()
+
 
 # ---------------------------------------------------------
 # PATHS AND PROFILE DATA

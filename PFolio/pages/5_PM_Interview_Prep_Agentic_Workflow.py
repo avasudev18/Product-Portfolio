@@ -159,9 +159,9 @@ def build_payload() -> dict:
     # Adjust keys below to match your crew's expected input names from GET /inputs.
     return {
         "inputs": {
-            "resume": resume_text,
-            "company_name": company.strip(),
-            "job_description": job_desc.strip(),
+            "candidate_name": candidate_name.strip(),
+            "job_title": job_title.strip(),
+            "company_name": company_name.strip()
         }
     }
 

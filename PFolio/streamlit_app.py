@@ -13,7 +13,7 @@ st.set_page_config(
 # ---------------------------------------------------------
 # PATHS AND PROFILE DATA
 # ---------------------------------------------------------
-BASE_DIR = Path(__file__).parent               # PFolio/
+BASE_DIR = Path(__file__).parent
 HEADSHOT_PATH = BASE_DIR / "assets" / "anil_headshot.jpg"
 
 NAME = "Anil Vasudevakurup"
@@ -22,8 +22,17 @@ ROLE = (
     "ERP Integrations | Customer Success Leader"
 )
 LOCATION = "Denver, CO"
-EMAIL = "anilvasudev2001@gmail.com"   # TODO: update
+EMAIL = "anilvasudev2001@gmail.com"
 LINKEDIN_URL = "https://www.linkedin.com/in/anil-vasudevakurup/"
+
+# Optional: helper links (may work depending on hosting)
+# If they don’t work on your hosting, users can still navigate via sidebar.
+PAGE_LINKS = {
+    "💼 Live Implementations": "Live_Implementations",
+    "📊 Customer Success Leadership": "Customer_Success_Leadership",
+    "🤖 Thought Leadership & Innovation Lab": "Thought_Leadership_&_Innovation_Lab",
+    "📜 Experience & Education": "Experience_&_Education",
+}
 
 
 def main():
@@ -36,7 +45,6 @@ def main():
         if HEADSHOT_PATH.is_file():
             st.image(str(HEADSHOT_PATH), use_container_width=True)
         else:
-            # Fallback avatar if image is not found
             st.markdown(
                 """
                 <div style="text-align:center; font-size:60px;">👤</div>
@@ -74,7 +82,7 @@ def main():
         )
 
     # -----------------------------------------------------
-    # (Optional) CORE EXPERTISE SECTION
+    # CORE EXPERTISE SECTION
     # -----------------------------------------------------
     st.divider()
     st.subheader("Core Expertise")
@@ -109,44 +117,35 @@ def main():
         )
 
     # -----------------------------------------------------
-    # BUTTONS AT THE BOTTOM
+    # NAVIGATION (Sidebar-driven)
     # -----------------------------------------------------
     st.divider()
     st.subheader("Explore the Portfolio")
 
-    accessible_button_style = """
-        display: inline-block;
-        padding: 12px 22px;
-        margin: 6px 6px 12px 0px;
-        background-color: #1f77b4;      /* Accessible blue */
-        color: #ffffff;
-        text-decoration: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 500;
-    """
-
-    st.markdown(
-        f"""
-        <a href="?page=Bio" style="{accessible_button_style}">🧑‍💼 Bio</a>
-        <a href="?page=Live_Implementations" style="{accessible_button_style}">💼 Live Implementations</a>
-        <a href="?page=Customer_Success_Leadership" style="{accessible_button_style}">📊 Customer Success Leadership</a>
-        <br>
-        <a href="?page=Thought_Leadership_&_Innovation_Lab" style="{accessible_button_style}">🤖 Innovation Lab</a>
-        <a href="?page=Experience_&_Education" style="{accessible_button_style}">📜 Experience & Education</a>
-        """,
-        unsafe_allow_html=True,
+    st.info(
+        "Use the **sidebar** to navigate. Under **🤖 Thought Leadership & Innovation Lab**, "
+        "you’ll see the subpages:\n"
+        "- AI Powered Agentic Interview Workflow\n"
+        "- SmartGardener – Personalized Gardening Assistant"
     )
 
+    # Optional shortcut buttons (works on many Streamlit deployments)
+    # If your hosting doesn't support query navigation, these still serve as clear calls-to-action.
+    b1, b2, b3, b4 = st.columns(4)
+    with b1:
+        st.link_button("💼 Live Implementations", "/Live_Implementations")
+    with b2:
+        st.link_button("📊 Customer Success", "/Customer_Success_Leadership")
+    with b3:
+        st.link_button("🤖 Innovation Lab", "/Thought_Leadership_&_Innovation_Lab")
+    with b4:
+        st.link_button("📜 Experience", "/Experience_&_Education")
+
     # -----------------------------------------------------
-    # FOOTER INFO
+    # FOOTER
     # -----------------------------------------------------
     st.divider()
-    st.info(
-        "Use the sidebar or the navigation buttons above to explore the portfolio: "
-        "Bio, live implementations, customer success leadership, innovation lab, "
-        "and full experience & education."
-    )
+    st.caption("© Anil Vasudevakurup • Streamlit portfolio")
 
 
 if __name__ == "__main__":

@@ -196,7 +196,7 @@ if start_btn:
     try:
         kickoff_resp = call_kickoff(token, payload)
         raw_box.caption("Kickoff response")
-        #raw_box.json(kickoff_resp)   #Raw box Hiding for Anikuttan
+        raw_box.json(kickoff_resp)   
 
         # Common patterns: {"task_id": "..."} or {"id": "..."} etc.
         task_id = (

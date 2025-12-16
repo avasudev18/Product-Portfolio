@@ -34,7 +34,7 @@ st.set_page_config(
     page_icon="💼",
     layout="wide"
 )
-custom_sidebar()
+custom_sidebar()     #adding sub menu
 
 
 # ---------------------------------------------------------

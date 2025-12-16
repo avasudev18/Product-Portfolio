@@ -18,3 +18,16 @@ adapted from the static GitHub Pages site.
 │  └─ anil_headshot              
 ├─ requirements.txt
 └─ README.md
+## New Structure
+.
+├─ streamlit_app.py
+├─ pages/
+│  ├─ 1_💼_Live_Implementations.py
+│  ├─ 2_📊_Customer_Success_Leadership.py
+│  ├─ 3_🤖_Thought_Leadership_&_Innovation_Lab/
+│  │  ├─ 3_1_AI_Powered_Agentic_Interview_Workflow.py
+│  │  └─ 3_2_SmartGardener_Personalized_Gardening_Assistant.py
+│  ├─ 4_📜_Experience_&_Education.py
+├─ assets/
+├─ requirements.txt
+└─ README.md

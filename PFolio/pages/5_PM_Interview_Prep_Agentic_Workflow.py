@@ -171,8 +171,8 @@ if start_btn:
         st.error("Please provide a valid Bearer Token (sidebar).")
         st.stop()
 
-    if not company.strip() or not job_desc.strip():
-        st.error("Please fill Company Name and Job Description.")
+    if not candidate_name.strip() or not job_title.strip() or not company_name.strip():
+        st.error("Please fill all required fields: candidate_name, job_title, company_name.")
         st.stop()
 
     payload = build_payload()

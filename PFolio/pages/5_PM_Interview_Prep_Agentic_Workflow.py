@@ -45,7 +45,7 @@ def call_kickoff(token: str, payload: dict) -> dict:
 
 def call_status(token: str, task_id: str) -> dict:
     url = f"{API_BASE}/status/{task_id}"
-    r = requests.get(url, headers=auth_headers(token), timeout=30)
+    r = requests.get(url, headers=auth_headers(token), timeout=90)
     return safe_json(r)
 
 def read_uploaded_file(uploaded_file) -> str:

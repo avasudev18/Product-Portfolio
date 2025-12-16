@@ -17,7 +17,7 @@ def custom_sidebar():
             icon="🧠"
         )
         st.page_link(
-            "pages/5_PM_Interview_Prep_Agentic_Workflow.py",
+            "pages/5_🚀_Interview_Prep_Agentic_Workflow.py",
             label="SmartGardener – Personalized Gardening Assistant",
             icon="🌱"
         )

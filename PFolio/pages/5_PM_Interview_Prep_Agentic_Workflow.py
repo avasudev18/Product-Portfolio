@@ -178,11 +178,20 @@ if start_btn:
     payload = build_payload()
 
     # Basic guard: avoid sending empty resume if user provided neither file nor paste
-    if not payload["inputs"]["resume"]:
-        st.warning("No resume text provided. Upload or paste resume text for best results.")
+   # if not payload["inputs"]["resume"]:
+        #st.warning("No resume text provided. Upload or paste resume text for best results.")
 
-    status_box.info("Starting workflow...")
-    raw_box.empty()
+    #status_box.info("Starting workflow...")
+    #raw_box.empty()
+    # Optional resume check (safe)
+    resume_text = payload["inputs"].get("resume_text", "").strip()
+
+    if not resume_text:
+        st.warning(
+            "No resume text provided (optional). "
+            "The workflow will still run, but results may be more generic."
+    )
+
 
     try:
         kickoff_resp = call_kickoff(token, payload)

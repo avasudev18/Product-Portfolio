@@ -201,10 +201,12 @@ if start_btn:
         # Common patterns: {"task_id": "..."} or {"id": "..."} etc.
         task_id = (
             kickoff_resp.get("task_id")
+            or kickoff_resp.get("kickoff_id")   # ✅ add this
             or kickoff_resp.get("id")
             or kickoff_resp.get("taskId")
             or kickoff_resp.get("data", {}).get("task_id")
-        )
+            or kickoff_resp.get("data", {}).get("kickoff_id")
+            )
 
         if not task_id:
             st.error("Could not find task_id in kickoff response. Check the response JSON above.")

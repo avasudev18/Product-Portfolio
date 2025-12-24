@@ -5,10 +5,13 @@ import plotly.graph_objects as go
 # ---------------------------------------------------
 # PAGE CONFIG
 # ---------------------------------------------------
-st.set_page_config(page_title="A1C Insight Dashboard", layout="wide")
+st.set_page_config(
+    page_title="A1C Insight Dashboard",
+    layout="wide"
+)
 
 # ---------------------------------------------------
-# HEADER
+# DASHBOARD HEADER
 # ---------------------------------------------------
 st.title("📊 A1C Insight & Trend Dashboard")
 st.caption("Actual vs Projected A1C with Fiber, Protein & Fat Overlay")
@@ -63,10 +66,10 @@ fat_intake = np.array([
     82, 84, 86, 88, 90, 92
 ])
 
-current_week = 6  # 12/23
+current_week = 6  # Week of 12/23
 
 # ---------------------------------------------------
-# INTERACTIVE PLOTLY CHART (Tooltips enabled)
+# INTERACTIVE PLOTLY CHART (with tooltips)
 # ---------------------------------------------------
 fig = go.Figure()
 
@@ -79,41 +82,42 @@ fig.add_trace(go.Scatter(
 fig.add_trace(go.Scatter(
     x=week_labels, y=projected_a1c,
     mode="lines+markers", name="Projected A1C",
-    line=dict(dash="dash"),
-    hovertemplate="Week: %{x}<br>Projected A1C: %{y:.2f}%<extra></extra>"
+    hovertemplate="Week: %{x}<br>Projected A1C: %{y:.2f}%<extra></extra>",
+    line=dict(dash="dash")
 ))
 
 fig.add_trace(go.Scatter(
     x=week_labels, y=fiber_score,
     mode="lines+markers", name="Fiber Score",
-    line=dict(dash="dot"),
-    hovertemplate="Week: %{x}<br>Fiber Score: %{y:.1f}/10<extra></extra>"
+    hovertemplate="Week: %{x}<br>Fiber Score: %{y:.1f}/10<extra></extra>",
+    line=dict(dash="dot")
 ))
 
 fig.add_trace(go.Scatter(
     x=week_labels, y=protein_intake,
     mode="lines+markers", name="Protein (g/day)",
-    line=dict(dash="dashdot"),
-    hovertemplate="Week: %{x}<br>Protein: %{y} g/day<extra></extra>"
+    hovertemplate="Week: %{x}<br>Protein: %{y} g/day<extra></extra>",
+    line=dict(dash="dashdot")
 ))
 
 fig.add_trace(go.Scatter(
     x=week_labels, y=fat_intake,
     mode="lines+markers", name="Fat (g/day)",
-    hovertemplate="Week: %{x}<br>Fat: %{y} g/day<extra></extra>"
+    hovertemplate="Week: %{x}<br>Fat: %{y} g/day<extra></extra>",
+    line=dict(dash="longdash")
 ))
 
-# Confidence band (filled)
+# Confidence Band
 fig.add_trace(go.Scatter(
     x=week_labels + week_labels[::-1],
     y=worst_case.tolist() + best_case[::-1].tolist(),
     fill="toself",
     name="Confidence Band",
-    line=dict(width=0),
-    hovertemplate="Week: %{x}<br>Band value: %{y:.2f}%<extra></extra>"
+    hovertemplate="Week: %{x}<br>Range Value: %{y:.2f}%<extra></extra>",
+    line=dict(width=0)
 ))
 
-# Current week marker
+# Current Week Marker
 fig.add_vline(
     x=week_labels[current_week],
     line_dash="dot",
@@ -127,13 +131,13 @@ fig.update_layout(
     xaxis_title="Week",
     yaxis_title="A1C (%)",
     height=600,
-    template="plotly_white",
+    template="plotly_white"
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 
 # ---------------------------------------------------
-# INSIGHTS
+# INSIGHT PANEL
 # ---------------------------------------------------
 st.markdown("### 🧠 Current Insight")
 st.success(

@@ -77,6 +77,8 @@ fig, ax1 = plt.subplots(figsize=(16, 6))
 # --- Main A1C Lines ---
 line1 = ax1.plot(weeks, actual_a1c, marker="o", linewidth=2.2, label="Actual A1C")[0]
 line2 = ax1.plot(weeks, projected_a1c, linestyle="--", linewidth=2.2, label="Projected A1C")[0]
+
+# --- Confidence Band ---
 band = ax1.fill_between(weeks, best_case, worst_case, alpha=0.15, label="Confidence Band")
 
 # --- Overlay Axes ---
@@ -106,24 +108,43 @@ ax1.grid(True)
 
 fig.suptitle("Actual vs Projected A1C with Fiber, Protein & Fat Overlay", fontsize=18)
 
-# --- Unified Legend ---
-handles, labels = [], []
-for axis in [ax1, ax2, ax3, ax4]:
-    h, l = axis.get_legend_handles_labels()
-    handles.extend(h)
-    labels.extend(l)
-
-ax1.legend(handles, labels, loc="upper right", fontsize=11)
-
 # ---------------------------------------------------
-# TOOLTIP ENABLE (interactive hover)
+# TOOLTIP SUPPORT (Enhanced)
 # ---------------------------------------------------
+
+# Tooltip for lines
 cursor = mplcursors.cursor([line1, line2, line3, line4, line5, point], hover=True)
 cursor.connect(
     "add",
     lambda sel: sel.annotation.set_text(f"{sel.artist.get_label()} → {sel.target[1]:.2f}")
 )
 
+# Tooltip for confidence band
+band_cursor = mplcursors.cursor([band], hover=True)
+band_cursor.connect(
+    "add",
+    lambda sel: sel.annotation.set_text(
+        f"Best Case: {best_case[current_week]:.2f}%\nWorst Case: {worst_case[current_week]:.2f}%"
+    )
+)
+
+# Tooltip for vertical week marker
+vline_cursor = mplcursors.cursor([ax1.axvline(x=current_week)], hover=True)
+vline_cursor.connect(
+    "add",
+    lambda sel: sel.annotation.set_text(f"Week of {week_labels[current_week]}")
+)
+
+# Tooltip for highlighted point
+point_cursor = mplcursors.cursor([point], hover=True)
+point_cursor.connect(
+    "add",
+    lambda sel: sel.annotation.set_text(f"A1C This Week: {actual_a1c[current_week]:.2f}%")
+)
+
+# ---------------------------------------------------
+# RENDER CHART
+# ---------------------------------------------------
 st.pyplot(fig)
 
 # ---------------------------------------------------

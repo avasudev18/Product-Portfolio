@@ -137,4 +137,7 @@ st.plotly_chart(fig, use_container_width=True)
 # ---------------------------------------------------
 st.markdown("### 🧠 Current Insight")
 st.success(
-    "Tr
+    "Trend shows resilience despite dietary variability. "
+    "High protein + fiber moderated improvement rate effectively."
+)
+st.caption("Insights are trend-based only and not medical advice.")

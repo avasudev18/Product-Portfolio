@@ -124,7 +124,8 @@ fig.add_trace(go.Scatter(
 
 # Confidence Band as filled area
 fig.add_trace(go.Scatter(
-    x=week_labels.tolist() + week_labels[::-1].tolist(),
+#   Commented  by AKV x=week_labels.tolist() + week_labels[::-1].tolist(),
+    x = week_labels + week_labels[::-1],
     y=worst_case.tolist() + best_case[::-1].tolist(),
     fill='toself',
     name='Confidence Band',

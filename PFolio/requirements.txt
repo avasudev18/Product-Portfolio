@@ -1,3 +1,5 @@
 streamlit>=1.32
 matplotlib
 plotly
+numpy
+mplcursors

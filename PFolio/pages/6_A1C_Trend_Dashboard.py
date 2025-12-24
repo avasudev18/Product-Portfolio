@@ -1,21 +1,27 @@
-pip install matplotlib
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
+# ---------------------------------------------------
+# PAGE CONFIG (lightweight, runs first)
+# ---------------------------------------------------
 st.set_page_config(
     page_title="A1C Insight Dashboard",
     layout="wide"
 )
 
+# ---------------------------------------------------
+# DASHBOARD HEADER
+# ---------------------------------------------------
 st.title("📊 A1C Insight & Trend Dashboard")
 st.caption("Actual vs Projected A1C with Fiber, Protein & Fat Overlay")
+st.caption("Protein/Fiber patterns based on your portfolio prototype")
 
-# -------------------------------
-# Data (replace later with dynamic input)
-# -------------------------------
+# ---------------------------------------------------
+# SAMPLE DATA (replace later with dynamic input)
+# ---------------------------------------------------
+weeks = np.arange(17)  # 0 → 16 (17 weeks)
 
-weeks = np.arange(0, 17)
 week_labels = [
     "11/23", "11/30", "12/07", "12/14",
     "12/21", "12/22", "12/23",
@@ -61,68 +67,64 @@ fat_intake = np.array([
     82, 84, 86, 88, 90, 92
 ])
 
-current_week_idx = 6  # 12/23
+current_week = 6  # Week of 12/23 prototype index
 
-# -------------------------------
-# Plot
-# -------------------------------
+# ---------------------------------------------------
+# PLOT RENDERING
+# ---------------------------------------------------
+fig, ax1 = plt.subplots(figsize=(16, 6))
 
-fig, ax1 = plt.subplots(figsize=(16,6))
+# --- A1C Lines ---
+ax1.plot(weeks, actual_a1c, marker="o", linewidth=2.2, label="Actual A1C")
+ax1.plot(weeks, projected_a1c, linestyle="--", linewidth=2.2, label="Projected A1C")
+ax1.fill_between(weeks, best_case, worst_case, alpha=0.18, label="Confidence Band")
 
-# A1C
-ax1.plot(weeks, actual_a1c, marker='o', linewidth=2.5, label="Actual A1C")
-ax1.plot(weeks, projected_a1c, linestyle='--', linewidth=2.5, label="Projected A1C")
-ax1.fill_between(weeks, best_case, worst_case, alpha=0.25, label="Confidence Band")
-ax1.axvline(x=current_week_idx, linestyle=':', linewidth=2, label="Current Week")
-ax1.scatter(current_week_idx, actual_a1c[current_week_idx], s=160)
+# --- Current Week Marker ---
+ax1.axvline(x=current_week, linestyle=":", linewidth=1.8)
+ax1.scatter(current_week, actual_a1c[current_week], s=140)
 
-ax1.set_xlabel("Week")
-ax1.set_ylabel("A1C (%)")
+# --- Axis Formatting ---
+ax1.set_xlabel("Week", fontsize=13)
+ax1.set_ylabel("A1C (%)", fontsize=13)
 ax1.set_xticks(weeks)
-ax1.set_xticklabels(week_labels)
+ax1.set_xticklabels(week_labels, fontsize=12)
 ax1.grid(True)
 
-# Fiber
+# --- Overlay Axes ---
 ax2 = ax1.twinx()
-ax2.plot(weeks, fiber_score, linestyle='-.', marker='s', linewidth=2, label="Fiber Score (0–10)")
-ax2.set_ylabel("Fiber Score")
+ax2.plot(weeks, fiber_score, linestyle="-.", marker="s", linewidth=1.8, label="Fiber Score")
 
-# Protein
 ax3 = ax1.twinx()
-ax3.spines.right.set_position(("outward", 60))
-ax3.plot(weeks, protein_intake, linestyle=':', marker='^', linewidth=2, label="Protein (g/day)")
-ax3.set_ylabel("Protein (g/day)")
+ax3.spines["right"].set_position(("outward", 50))
+ax3.plot(weeks, protein_intake, linestyle=":", marker="^", linewidth=1.8, label="Protein (g/day)")
 
-# Fat
 ax4 = ax1.twinx()
-ax4.spines.right.set_position(("outward", 120))
-ax4.plot(weeks, fat_intake, linestyle='--', marker='D', linewidth=2, label="Fat (g/day)")
-ax4.set_ylabel("Fat (g/day)")
+ax4.spines["right"].set_position(("outward", 100))
+ax4.plot(weeks, fat_intake, linestyle="--", marker="D", linewidth=1.8, label="Fat (g/day)")
 
-# Legend
-lines, labels = [], []
-for ax in [ax1, ax2, ax3, ax4]:
-    l, lab = ax.get_legend_handles_labels()
-    lines += l
-    labels += lab
+ax2.set_ylabel("Fiber Score", fontsize=12)
+ax3.set_ylabel("Protein (g/day)", fontsize=12)
+ax4.set_ylabel("Fat (g/day)", fontsize=12)
 
-ax1.legend(lines, labels, loc="upper right")
+# --- Unified Legend (efficient handle collection) ---
+handles, labels = [], []
+for axis in [ax1, ax2, ax3, ax4]:
+    h, l = axis.get_legend_handles_labels()
+    handles.extend(h)
+    labels.extend(l)
 
-plt.title("Actual vs Projected A1C with Fiber, Protein & Fat Overlay")
+fig.suptitle("Actual vs Projected A1C with Fiber, Protein & Fat Overlay", fontsize=18)
+
+ax1.legend(handles, labels, loc="upper right", fontsize=11, frameon=True)
 
 st.pyplot(fig)
 
-# -------------------------------
-# Insight Panel
-# -------------------------------
-
-st.markdown("### 🧠 Current Insight")
+# ---------------------------------------------------
+# INSIGHT PANEL (Streamlit-optimized, no heavy ops)
+# ---------------------------------------------------
+st.markdown("### Current Insight")
 st.success(
-    "The current trend shows resilience despite dietary variability. "
-    "Protein and fat intake buffered glucose stress, while fiber controlled "
-    "the rate of A1C improvement."
+    "Trend shows resilience despite dietary variability. "
+    "High protein + fiber moderated improvement rate effectively."
 )
-
-st.caption(
-    "These insights are based on trends and self-reported data and are not medical advice."
-)
+st.caption("Insights are trend-based only and not medical advice.")

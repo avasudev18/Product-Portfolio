@@ -1,6 +1,7 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 import numpy as np
-import plotly.graph_objects as go
+import mplcursors  # tooltip library
 
 # ---------------------------------------------------
 # PAGE CONFIG
@@ -19,14 +20,14 @@ st.caption("Actual vs Projected A1C with Fiber, Protein & Fat Overlay")
 # ---------------------------------------------------
 # SAMPLE DATA (Prototype)
 # ---------------------------------------------------
+weeks = np.arange(17)
+
 week_labels = [
     "11/23", "11/30", "12/07", "12/14",
     "12/21", "12/22", "12/23",
     "12/28", "01/04", "01/11", "01/18",
     "01/25", "02/01", "02/08", "02/15", "02/22", "03/01"
 ]
-
-weeks = np.arange(len(week_labels))
 
 actual_a1c = np.array([
     6.38, 6.33, 6.29, 6.25,
@@ -66,104 +67,64 @@ fat_intake = np.array([
     82, 84, 86, 88, 90, 92
 ])
 
-current_week = 6  # marker for 12/23 week
+current_week = 6
 
 # ---------------------------------------------------
-# INTERACTIVE PLOTLY PLOT (with tooltips)
+# PLOT RENDERING
 # ---------------------------------------------------
-fig = go.Figure()
+fig, ax1 = plt.subplots(figsize=(16, 6))
 
-# A1C actual
-fig.add_trace(go.Scatter(
-    x=week_labels,
-    y=actual_a1c,
-    mode='lines+markers',
-    name='Actual A1C',
-    hovertemplate="Actual A1C: %{y:.2f}%<extra></extra>"
-))
+# --- Main A1C Lines ---
+line1 = ax1.plot(weeks, actual_a1c, marker="o", linewidth=2.2, label="Actual A1C")[0]
+line2 = ax1.plot(weeks, projected_a1c, linestyle="--", linewidth=2.2, label="Projected A1C")[0]
+band = ax1.fill_between(weeks, best_case, worst_case, alpha=0.15, label="Confidence Band")
 
-# A1C projected
-fig.add_trace(go.Scatter(
-    x=week_labels,
-    y=projected_a1c,
-    mode='lines+markers',
-    name='Projected A1C',
-    line=dict(dash='dash'),
-    hovertemplate="Projected A1C: %{y:.2f}%<extra></extra>"
-))
+# --- Overlay Axes ---
+ax2 = ax1.twinx()
+line3 = ax2.plot(weeks, fiber_score, linestyle="-.", marker="s", linewidth=1.8, label="Fiber Score")[0]
 
-# Fiber
-fig.add_trace(go.Scatter(
-    x=week_labels,
-    y=fiber_score,
-    mode='lines+markers',
-    name='Fiber Score',
-    line=dict(dash='dot'),
-    hovertemplate="Fiber Score: %{y:.1f}/10<extra></extra>"
-))
+ax3 = ax1.twinx()
+ax3.spines["right"].set_position(("outward", 50))
+line4 = ax3.plot(weeks, protein_intake, linestyle=":", marker="^", linewidth=1.8, label="Protein (g/day)")[0]
 
-# Protein
-fig.add_trace(go.Scatter(
-    x=week_labels,
-    y=protein_intake,
-    mode='lines+markers',
-    name='Protein (g/day)',
-    line=dict(dash='dashdot'),
-    hovertemplate="Protein: %{y} g/day<extra></extra>"
-))
+ax4 = ax1.twinx()
+ax4.spines["right"].set_position(("outward", 100))
+line5 = ax4.plot(weeks, fat_intake, linestyle="--", marker="D", linewidth=1.8, label="Fat (g/day)")[0]
 
-# Fat
-fig.add_trace(go.Scatter(
-    x=week_labels,
-    y=fat_intake,
-    mode='lines+markers',
-    name='Fat (g/day)',
-    line=dict(dash='longdash'),
-    hovertemplate="Fat: %{y} g/day<extra></extra>"
-))
+# --- Current Week Highlight ---
+point = ax1.scatter(current_week, actual_a1c[current_week], s=140, label="Current A1C")
 
-# Confidence Band as filled area
-fig.add_trace(go.Scatter(
-#   Commented  by AKV x=week_labels.tolist() + week_labels[::-1].tolist(),
-    x = week_labels + week_labels[::-1],
-    y=worst_case.tolist() + best_case[::-1].tolist(),
-    fill='toself',
-    name='Confidence Band',
-    hovertemplate="Confidence Range<br>Best Case: %{text[1]:.2f}%<br>Worst Case: %{text[0]:.2f}%<extra></extra>",
-    text=list(zip(worst_case, best_case)),
-    line=dict(width=0)
-))
+# --- Axis Formatting ---
+ax1.set_xticks(weeks)
+ax1.set_xticklabels(week_labels, fontsize=12)
+ax1.set_xlabel("Week", fontsize=13)
+ax1.set_ylabel("A1C (%)", fontsize=13)
+ax2.set_ylabel("Fiber Score", fontsize=12)
+ax3.set_ylabel("Protein (g/day)", fontsize=12)
+ax4.set_ylabel("Fat (g/day)", fontsize=12)
+ax1.grid(True)
 
-# Current week marker line
-fig.add_trace(go.Scatter(
-    x=[week_labels[current_week], week_labels[current_week]],
-    y=[actual_a1c.min()-0.1, actual_a1c.max()+0.1],
-    mode="lines",
-    name="Current Week",
-    hovertemplate="Current Week: " + week_labels[current_week] + "<extra></extra>",
-    line=dict(dash="dot")
-))
+fig.suptitle("Actual vs Projected A1C with Fiber, Protein & Fat Overlay", fontsize=18)
 
-# Highlight current week point
-fig.add_trace(go.Scatter(
-    x=[week_labels[current_week]],
-    y=[actual_a1c[current_week]],
-    mode="markers",
-    name="Current A1C",
-    marker=dict(size=14),
-    hovertemplate="Current A1C: %{y:.2f}%<extra></extra>"
-))
+# --- Unified Legend ---
+handles, labels = [], []
+for axis in [ax1, ax2, ax3, ax4]:
+    h, l = axis.get_legend_handles_labels()
+    handles.extend(h)
+    labels.extend(l)
 
-fig.update_layout(
-    title="Actual vs Projected A1C with Fiber, Protein & Fat Overlay",
-    hovermode="x unified",
-    xaxis_title="Week",
-    yaxis_title="A1C (%)",
-    height=600,
-    template="plotly_white"
+ax1.legend(handles, labels, loc="upper right", fontsize=11)
+
+# ---------------------------------------------------
+# TOOLTIP ENABLE (interactive hover)
+# ---------------------------------------------------
+cursor = mplcursors.cursor([line1, line2, line3, line4, line5, point], hover=True)
+cursor.connect(
+    "add",
+    lambda sel: sel.annotation.set_text(f"{sel.artist.get_label()} → {sel.target[1]:.2f}")
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.pyplot(fig)
 
 # ---------------------------------------------------
 # INSIGHT PANEL
@@ -171,6 +132,6 @@ st.plotly_chart(fig, use_container_width=True)
 st.markdown("### 🧠 Current Insight")
 st.success(
     "Trend shows resilience despite dietary variability. "
-    "Protein and fiber patterns moderated improvement rate."
+    "High protein + fiber moderated improvement rate effectively."
 )
 st.caption("Insights are trend-based only and not medical advice.")

@@ -14,7 +14,7 @@ import google.generativeai as genai
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-SHEET_CSV_URL = os.getenv("https://docs.google.com/spreadsheets/d/1WSWpfIfLvMOnBcZWG-sUD_IxxaxvtWqF/edit?usp=sharing&ouid=113754772063506240841&rtpof=true&sd=true", "")
+SHEET_CSV_URL = os.getenv("SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/1WSWpfIfLvMOnBcZWG-sUD_IxxaxvtWqF/edit?usp=sharing&ouid=113754772063506240841&rtpof=true&sd=true", "")
 
 if not GEMINI_API_KEY:
     st.error("Missing GEMINI_API_KEY in .env")

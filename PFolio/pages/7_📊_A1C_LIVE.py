@@ -20,7 +20,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # Public Google Sheet -> CSV export URL
 # Example format:
 # https://docs.google.com/spreadsheets/d/<SPREADSHEET_ID>/gviz/tq?tqx=out:csv&sheet=DietLogs
-SHEET_CSV_URL = os.getenv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRcuj-g59c5JryG92ELeX-zk9vkaAhhWgoD0G9OtD_7EyEHTsZwvzWBAIzd6jubaw/pubhtml?gid=1563587956&single=true", "")
+SHEET_CSV_URL = os.getenv("https://docs.google.com/spreadsheets/d/1WSWpfIfLvMOnBcZWG-sUD_IxxaxvtWqF/edit?usp=sharing&ouid=113754772063506240841&rtpof=true&sd=true", "")
 
 if not OPENAI_API_KEY:
     st.error("Missing OPENAI_API_KEY. Add it to .env or Streamlit secrets.")

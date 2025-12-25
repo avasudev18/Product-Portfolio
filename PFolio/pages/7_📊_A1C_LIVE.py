@@ -4,7 +4,7 @@ from datetime import date
 import numpy as np
 import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from openai import OpenAI
 

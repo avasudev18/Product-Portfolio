@@ -1,4 +1,7 @@
 streamlit>=1.32
-plotly
 numpy
+pandas
+matplotlib
+gspread
 python-dotenv
+google-generativeai

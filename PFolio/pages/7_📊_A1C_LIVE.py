@@ -6,103 +6,33 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
-from openai import OpenAI
+import google.generativeai as genai
 
 # -------------------------------
-# LOAD ENV FIRST
+# LOAD CONFIG
 # -------------------------------
-load_dotenv()  # ✅ Load .env before using getenv()
+load_dotenv()
 
-# -------------------------------
-# CONFIG
-# -------------------------------
-APP_TITLE = "📊 A1C Insight & Trend Dashboard (GPT-Powered)"
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-SHEET_CSV_URL = os.getenv("SHEET_CSV_URL", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+SHEET_CSV_URL = os.getenv("https://docs.google.com/spreadsheets/d/1WSWpfIfLvMOnBcZWG-sUD_IxxaxvtWqF/edit?usp=sharing&ouid=113754772063506240841&rtpof=true&sd=true", "")
 
-if not OPENAI_API_KEY:
-    st.error("Missing OPENAI_API_KEY. Please add it to your .env file.")
+if not GEMINI_API_KEY:
+    st.error("Missing GEMINI_API_KEY in .env")
     st.stop()
 
 if not SHEET_CSV_URL:
-    st.error("Missing SHEET_CSV_URL. Please add your Google Sheet CSV export URL in .env.")
+    st.error("Missing SHEET_CSV_URL in .env")
     st.stop()
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+
+APP_TITLE = "📊 A1C Insight & Trend Dashboard (Gemini AI)"
+st.set_page_config(page_title="A1C Tracker", layout="wide")
+st.title(APP_TITLE)
 
 # -------------------------------
-# SYSTEM PROMPT
-# -------------------------------
-SYSTEM_PROMPT = """
-You are an A1C Insight & Trend Analyzer for a user-friendly health dashboard.
-Provide lifestyle pattern insights in a clear, supportive, and non-medical way.
-
-⚠ Disclaimer: “These insights are based on trends and self-reported data and are not medical advice.”
-Keep the tone simple, helpful, and encouraging.
-"""
-
-# -------------------------------
-# DASHBOARD PLOTTING
-# -------------------------------
-def plot_dashboard(df: pd.DataFrame, current_pos: int):
-    base = 6.4  # starting reference A1C
-    days = np.arange(len(df))
-
-    carbs_mid = (df["carbs_min"] + df["carbs_max"]) / 2
-    slope = -0.0025
-
-    adj = (
-        (carbs_mid - 110) * 0.0006
-        - (df["fiber"] - 6.0) * 0.010
-        - (df["protein"] - 90) * 0.0003
-        + (df["fat"] - 75) * 0.0002
-    )
-    actual = base + slope * days + np.cumsum(adj.fillna(0).values) * 0.02
-
-    projected = np.linspace(base, 5.8, len(df))
-    best = projected - 0.08
-    worst = projected + 0.12
-
-    fig, ax1 = plt.subplots(figsize=(16, 6))
-    ax1.plot(days, actual, marker="o", linewidth=2.5, label="Actual A1C (Proxy)")
-    ax1.plot(days, projected, linestyle="--", linewidth=2.5, label="Projected A1C")
-    ax1.fill_between(days, best, worst, alpha=0.25, label="Confidence Band")
-    ax1.axvline(x=current_pos, linestyle=":", linewidth=2, label="Current Day")
-    ax1.scatter(current_pos, actual[current_pos], s=160)
-
-    ax1.set_xlabel("Day Index")
-    ax1.set_ylabel("A1C (%)")
-    ax1.grid(True)
-
-    ax2 = ax1.twinx()
-    ax2.plot(days, df["fiber"], linestyle="-.", marker="s", linewidth=2, label="Fiber Score")
-    ax2.set_ylabel("Fiber (0–10)")
-
-    ax3 = ax1.twinx()
-    ax3.spines.right.set_position(("outward", 60))
-    ax3.plot(days, df["protein"], linestyle=":", marker="^", linewidth=2, label="Protein (g)")
-    ax3.set_ylabel("Protein (g)")
-
-    ax4 = ax1.twinx()
-    ax4.spines.right.set_position(("outward", 120))
-    ax4.plot(days, df["fat"], linestyle="--", marker="D", linewidth=2, label="Fat (g)")
-    ax4.set_ylabel("Fat (g)")
-
-    # Combine legends
-    lines, labels = [], []
-    for ax in [ax1, ax2, ax3, ax4]:
-        l, lab = ax.get_legend_handles_labels()
-        lines += l
-        labels += lab
-
-    ax1.legend(lines, labels, loc="upper right")
-    plt.title("A1C Trend with Fiber/Protein/Fat Correlation")
-    plt.tight_layout()
-    return fig
-
-# -------------------------------
-# GOOGLE SHEET READER
+# READ GOOGLE SHEET
 # -------------------------------
 @st.cache_data(ttl=60)
 def read_diet_logs_from_sheet(csv_url: str) -> pd.DataFrame:
@@ -114,6 +44,8 @@ def read_diet_logs_from_sheet(csv_url: str) -> pd.DataFrame:
     df["entry_text"] = df["entry_text"].fillna("").astype(str)
     return df.sort_values("date")
 
+diet_df = read_diet_logs_from_sheet(SHEET_CSV_URL)
+
 def get_entry_text_for_date(diet_df: pd.DataFrame, entry_date: str) -> str:
     match = diet_df[diet_df["date"] == entry_date]
     if match.empty:
@@ -121,91 +53,110 @@ def get_entry_text_for_date(diet_df: pd.DataFrame, entry_date: str) -> str:
     return "\n\n".join(match["entry_text"].tolist()).strip()
 
 # -------------------------------
-# GPT REPORT GENERATION
+# GEMINI ANALYSIS CALL
 # -------------------------------
-def call_gpt_for_log(entry_text: str, entry_date: str) -> dict:
-    user_prompt = f"""
-Date: {entry_date}
+def call_gemini_for_log(entry_text: str, entry_date: str):
+    prompt = f"""
+You are an A1C Trend Insight Engine.
+Give results in simple, clear, supportive, non-medical language.
 
-User Log (plain text):
+User Diet & Activity Log:
 {entry_text}
 
-Return only JSON with:
-- carbs_min, carbs_max (g)
-- fiber (0–10)
-- protein (g)
-- fat (g)
-- rating (Compliant / Borderline / High Risk)
-- trend summary (1 line)
-- recommendations (3–7 short points)
-- disclaimer
+Date:
+{entry_date}
+
+Return JSON with:
+{{
+  "date": "{entry_date}",
+  "carbs_min": number,
+  "carbs_max": number,
+  "fiber": number (0-10),
+  "protein": number,
+  "fat": number,
+  "rating": "Compliant" | "Borderline" | "High Risk",
+  "trend_summary": string,
+  "recommendations": [3-7 short points],
+  "disclaimer": string
+}}
 """
+    try:
+        response = gemini_model.generate_content(prompt)
+        text = response.text.strip()
+        # Extract JSON from response
+        start = text.find("{")
+        end = text.rfind("}") + 1
+        return json.loads(text[start:end])
+    except Exception as e:
+        st.error(f"Gemini analysis failed: {e}")
+        return None
 
-    resp = client.responses.create(
-        model=MODEL,
-        input=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        store=False
+# -------------------------------
+# DASHBOARD PLOTTING
+# -------------------------------
+def plot_dashboard(df: pd.DataFrame, current_pos: int):
+    base = 6.4
+    days = np.arange(len(df))
+    carbs_mid = (df["carbs_min"] + df["carbs_max"]) / 2
+    slope = -0.0025
+
+    adj = (
+        (carbs_mid - 110) * 0.0006
+        - (df["fiber"] - 6.0) * 0.010
+        - (df["protein"] - 90) * 0.0003
+        + (df["fat"] - 75) * 0.0002
     )
-    return json.loads(resp.output_text.strip())
+    actual = base + slope * days + np.cumsum(adj.fillna(0).values) * 0.02
+    projected = np.linspace(base, 5.8, len(df))
+    best = projected - 0.08
+    worst = projected + 0.12
+
+    fig, ax = plt.subplots(figsize=(16, 6))
+    ax.plot(days, actual, marker="o", linewidth=2.5, label="Actual A1C (Proxy)")
+    ax.plot(days, projected, linestyle="--", linewidth=2.5, label="Projected A1C")
+    ax.fill_between(days, best, worst, alpha=0.25, label="Confidence Band")
+    ax.axvline(x=current_pos, linestyle=":", linewidth=2)
+    ax.scatter(current_pos, actual[current_pos], s=160)
+
+    ax.set_xlabel("Day Index")
+    ax.set_ylabel("A1C (%)")
+    ax.grid(True)
+    ax.legend(loc="upper right")
+    plt.title("A1C Trend Correlation (Gemini AI)")
+    plt.tight_layout()
+    return fig
 
 # -------------------------------
-# STREAMLIT UI
+# UI SECTIONS
 # -------------------------------
-st.set_page_config(page_title="A1C Tracker", layout="wide")
-st.title(APP_TITLE)
-
-try:
-    diet_df = read_diet_logs_from_sheet(SHEET_CSV_URL)
-except Exception as e:
-    st.error(f"Failed to read diet logs from sheet: {e}")
-    st.stop()
-
-colA, colB = st.columns([1, 1])
+colA, colB = st.columns([1,1])
 
 with colA:
-    st.subheader("📝 Today’s Log (from Google Sheet)")
-    today_date = st.date_input("Date", value=date.today()).isoformat()
-    today_iso = date.fromisoformat(today_date).isoformat()
+    st.subheader("📝 Today’s Log")
+    entry_date = st.date_input("Select Date", value=date.today()).isoformat()
+    today_iso = entry_date
 
     sheet_text = get_entry_text_for_date(diet_df, today_iso)
     entry_text = st.text_area("Diet/activity text", value=sheet_text, height=220)
 
-    if st.button("Generate GPT Report"):
+    if st.button("Generate Gemini Report"):
         if not entry_text.strip():
-            st.warning("No log text found for this date.")
+            st.warning("No log text found for this date in sheet.")
         else:
-            with st.spinner("Generating GPT trend insights…"):
-                report = call_gpt_for_log(entry_text, today_iso)
+            with st.spinner("Generating Gemini insights…"):
+                report = call_gemini_for_log(entry_text, today_iso)
 
-            # Store in session history
-            rep = {
-                "date": report["date"],
-                "carbs_min": report["carbs_min"],
-                "carbs_max": report["carbs_max"],
-                "fiber": report["fiber"],
-                "protein": report["protein"],
-                "fat": report["fat"],
-                "rating": report["rating"],
-                "a1c_trend_summary": report["trend summary"],
-                "recommendations": report["recommendations"],
-                "disclaimer": report["disclaimer"]
-            }
-
-            if "report_history" not in st.session_state:
-                st.session_state["report_history"] = []
-
-            # Upsert into session history
-            history = [x for x in st.session_state["report_history"] if x["date"] != rep["date"]]
-            history.append(rep)
-            history.sort(key=lambda x: x["date"])
-            st.session_state["report_history"] = history
-            st.success("Report generated & session dashboard updated.")
+            if report:
+                if "report_history" not in st.session_state:
+                    st.session_state["report_history"] = []
+                history = [x for x in st.session_state["report_history"] if x["date"] != report["date"]]
+                history.append(report)
+                history.sort(key=lambda x: x["date"])
+                st.session_state["report_history"] = history
+                st.success("Gemini report generated!")
 
 with colB:
-    st.subheader("📌 Latest GPT Report")
+    st.subheader("📌 Latest Report")
     history = st.session_state.get("report_history", [])
     if history:
         latest = history[-1]
@@ -213,23 +164,23 @@ with colB:
         st.markdown(f"**Rating:** {latest['rating']}")
         st.markdown(f"**Carbs:** {latest['carbs_min']}–{latest['carbs_max']} g")
         st.markdown(f"**Fiber Score:** {latest['fiber']:.1f} / 10")
-        st.markdown(f"**Protein:** {latest['protein']:.0f} g  |  **Fat:** {latest['fat']:.0f} g")
-        st.markdown(f"**Summary:** {latest['a1c_trend_summary']}")
+        st.markdown(f"**Protein:** {latest['protein']} g  |  **Fat:** {latest['fat']} g")
+        st.markdown(f"**Summary:** {latest['trend_summary']}")
         st.write("**Recommendations:**", latest["recommendations"])
         st.caption(latest["disclaimer"])
     else:
-        st.info("No reports generated yet this session.")
+        st.info("No reports yet. Generate one!")
 
 st.divider()
-st.subheader("📈 Live Dashboard (Session History)")
+st.subheader("📈 Live Dashboard")
 
 history = st.session_state.get("report_history", [])
 if history:
-    df = pd.DataFrame(history).sort_values("date").reset_index(drop=True)
+    df = pd.DataFrame(history).reset_index(drop=True)
     fig = plot_dashboard(df, current_pos=len(df)-1)
     st.pyplot(fig)
 
     with st.expander("🔎 Raw session history"):
         st.dataframe(df[["date","rating","carbs_min","carbs_max","fiber","protein","fat"]], use_container_width=True)
 else:
-    st.info("Dashboard will appear after first GPT report.")
+    st.info("Dashboard appears after first Gemini report.")

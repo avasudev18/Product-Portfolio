@@ -4,30 +4,29 @@ from datetime import date
 import numpy as np
 import pandas as pd
 import streamlit as st
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from openai import OpenAI
 
 # -------------------------------
-# ENV / CONFIG
+# LOAD ENV FIRST
 # -------------------------------
-load_dotenv()  # ✅ must come BEFORE getenv()
+load_dotenv()  # ✅ Load .env before using getenv()
 
+# -------------------------------
+# CONFIG
+# -------------------------------
 APP_TITLE = "📊 A1C Insight & Trend Dashboard (GPT-Powered)"
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")  # keep configurable
+MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-
-# Public Google Sheet -> CSV export URL
-# Example format:
-# https://docs.google.com/spreadsheets/d/<SPREADSHEET_ID>/gviz/tq?tqx=out:csv&sheet=DietLogs
-SHEET_CSV_URL = os.getenv("https://docs.google.com/spreadsheets/d/1WSWpfIfLvMOnBcZWG-sUD_IxxaxvtWqF/edit?usp=sharing&ouid=113754772063506240841&rtpof=true&sd=true", "")
+SHEET_CSV_URL = os.getenv("SHEET_CSV_URL", "")
 
 if not OPENAI_API_KEY:
-    st.error("Missing OPENAI_API_KEY. Add it to .env or Streamlit secrets.")
+    st.error("Missing OPENAI_API_KEY. Please add it to your .env file.")
     st.stop()
 
 if not SHEET_CSV_URL:
-    st.error("Missing SHEET_CSV_URL. Add it to .env or Streamlit secrets.")
+    st.error("Missing SHEET_CSV_URL. Please add your Google Sheet CSV export URL in .env.")
     st.stop()
 
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -36,142 +35,18 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 # SYSTEM PROMPT
 # -------------------------------
 SYSTEM_PROMPT = """
-You are an A1C Insight and Trend Engine for a consumer-facing digital health application.
-Analyze user-provided lifestyle, physiology, and activity data to generate personalized A1C trends,
-insights, and projections in a non-diagnostic, non-prescriptive manner.
+You are an A1C Insight & Trend Analyzer for a user-friendly health dashboard.
+Provide lifestyle pattern insights in a clear, supportive, and non-medical way.
 
-Core Principles:
-- Do not provide medical diagnoses or treatment advice
-- Use plain language suitable for non-clinical users
-- Focus on patterns, trends, and correlations, not certainty
-- Ensure outputs are interpretable, transparent, and explainable
-
-User Profile Context (Fixed Inputs):
-Sex: Male
-Age: 58
-Height: 5 feet 11 inches
-Weight: 175 lbs
-Exercise Frequency: 4 times per week
-Exercise Types: Structured exercise, Pickleball, Tennis
-
-Output Guidelines:
-Return a concise summary plus a structured report.
-Include confidence disclaimer: “These insights are based on trends and self-reported data and are not medical advice.”
+⚠ Disclaimer: “These insights are based on trends and self-reported data and are not medical advice.”
+Keep the tone simple, helpful, and encouraging.
 """
-
-# -------------------------------
-# STRUCTURED OUTPUT SCHEMA (Responses API)
-# -------------------------------
-REPORT_SCHEMA = {
-    "name": "daily_a1c_report",
-    "strict": True,  # ✅ important for strict structured outputs
-    "schema": {
-        "type": "object",
-        "additionalProperties": False,
-        "properties": {
-            "date": {"type": "string"},
-            "a1c_trend_summary": {"type": "string"},
-            "daily_total_carbs_g": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "min": {"type": "number"},
-                    "max": {"type": "number"}
-                },
-                "required": ["min", "max"]
-            },
-            "fiber_score_0_10": {"type": "number"},
-            "protein_g": {"type": "number"},
-            "fat_g": {"type": "number"},
-            "rating": {"type": "string", "enum": ["Compliant", "Borderline", "High Risk"]},
-            "carb_spike_alerts": {"type": "array", "items": {"type": "string"}},
-            "recommendations": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 7},
-            "notes": {"type": "string"},
-            "disclaimer": {"type": "string"}
-        },
-        "required": [
-            "date",
-            "a1c_trend_summary",
-            "daily_total_carbs_g",
-            "fiber_score_0_10",
-            "protein_g",
-            "fat_g",
-            "rating",
-            "carb_spike_alerts",
-            "recommendations",
-            "disclaimer"
-        ]
-    }
-}
-
-# -------------------------------
-# GOOGLE SHEET READERS
-# -------------------------------
-@st.cache_data(ttl=60)
-def read_diet_logs_from_sheet(csv_url: str) -> pd.DataFrame:
-    """
-    Reads a public Google Sheet tab exported as CSV.
-    Expect columns: date, entry_text
-    """
-    df = pd.read_csv(csv_url)
-    df.columns = [c.strip().lower() for c in df.columns]
-
-    if "date" not in df.columns or "entry_text" not in df.columns:
-        raise ValueError("Sheet must contain columns: date, entry_text")
-
-    # normalize date to ISO string
-    df["date"] = pd.to_datetime(df["date"]).dt.date.astype(str)
-    df["entry_text"] = df["entry_text"].fillna("").astype(str)
-    return df.sort_values("date")
-
-def get_entry_text_for_date(diet_df: pd.DataFrame, entry_date: str) -> str:
-    match = diet_df[diet_df["date"] == entry_date]
-    if match.empty:
-        return ""
-    # If multiple rows, join them
-    return "\n\n".join(match["entry_text"].tolist()).strip()
-
-# -------------------------------
-# GPT REPORT GENERATOR
-# -------------------------------
-def generate_report(entry_text: str, entry_date: str) -> dict:
-    user_prompt = f"""
-Date: {entry_date}
-
-User Log (plain text):
-{entry_text}
-
-Tasks:
-1) Estimate carbs by meal (Breakfast/Lunch/Dinner/Snacks) and total.
-2) Produce a trend-based A1C insight summary (non-diagnostic).
-3) Estimate fiber score (0–10), protein grams, fat grams (rough estimates are OK).
-4) Output ONLY JSON that matches the provided schema.
-"""
-
-    resp = client.responses.create(
-        model=MODEL,
-        input=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        text={
-            "format": {
-                "type": "json_schema",
-                "json_schema": REPORT_SCHEMA
-            }
-        },
-        store=False
-    )
-
-    # The SDK helper returns the final text response
-    txt = resp.output_text.strip()
-    return json.loads(txt)
 
 # -------------------------------
 # DASHBOARD PLOTTING
 # -------------------------------
 def plot_dashboard(df: pd.DataFrame, current_pos: int):
-    base = 6.4
+    base = 6.4  # starting reference A1C
     days = np.arange(len(df))
 
     carbs_mid = (df["carbs_min"] + df["carbs_max"]) / 2
@@ -192,7 +67,7 @@ def plot_dashboard(df: pd.DataFrame, current_pos: int):
     fig, ax1 = plt.subplots(figsize=(16, 6))
     ax1.plot(days, actual, marker="o", linewidth=2.5, label="Actual A1C (Proxy)")
     ax1.plot(days, projected, linestyle="--", linewidth=2.5, label="Projected A1C")
-    ax1.fill_between(days, best, worst, alpha=0.25, label="Confidence Band (Best–Worst)")
+    ax1.fill_between(days, best, worst, alpha=0.25, label="Confidence Band")
     ax1.axvline(x=current_pos, linestyle=":", linewidth=2, label="Current Day")
     ax1.scatter(current_pos, actual[current_pos], s=160)
 
@@ -201,7 +76,7 @@ def plot_dashboard(df: pd.DataFrame, current_pos: int):
     ax1.grid(True)
 
     ax2 = ax1.twinx()
-    ax2.plot(days, df["fiber"], linestyle="-.", marker="s", linewidth=2, label="Fiber (0–10)")
+    ax2.plot(days, df["fiber"], linestyle="-.", marker="s", linewidth=2, label="Fiber Score")
     ax2.set_ylabel("Fiber (0–10)")
 
     ax3 = ax1.twinx()
@@ -214,6 +89,7 @@ def plot_dashboard(df: pd.DataFrame, current_pos: int):
     ax4.plot(days, df["fat"], linestyle="--", marker="D", linewidth=2, label="Fat (g)")
     ax4.set_ylabel("Fat (g)")
 
+    # Combine legends
     lines, labels = [], []
     for ax in [ax1, ax2, ax3, ax4]:
         l, lab = ax.get_legend_handles_labels()
@@ -221,12 +97,62 @@ def plot_dashboard(df: pd.DataFrame, current_pos: int):
         labels += lab
 
     ax1.legend(lines, labels, loc="upper right")
-    plt.title("Actual vs Projected A1C + Fiber + Protein + Fat (Live Tracker)")
+    plt.title("A1C Trend with Fiber/Protein/Fat Correlation")
     plt.tight_layout()
     return fig
 
 # -------------------------------
-# UI
+# GOOGLE SHEET READER
+# -------------------------------
+@st.cache_data(ttl=60)
+def read_diet_logs_from_sheet(csv_url: str) -> pd.DataFrame:
+    df = pd.read_csv(csv_url)
+    df.columns = [c.strip().lower() for c in df.columns]
+    if "date" not in df.columns or "entry_text" not in df.columns:
+        raise ValueError("Sheet must contain columns: date, entry_text")
+    df["date"] = pd.to_datetime(df["date"]).dt.date.astype(str)
+    df["entry_text"] = df["entry_text"].fillna("").astype(str)
+    return df.sort_values("date")
+
+def get_entry_text_for_date(diet_df: pd.DataFrame, entry_date: str) -> str:
+    match = diet_df[diet_df["date"] == entry_date]
+    if match.empty:
+        return ""
+    return "\n\n".join(match["entry_text"].tolist()).strip()
+
+# -------------------------------
+# GPT REPORT GENERATION
+# -------------------------------
+def call_gpt_for_log(entry_text: str, entry_date: str) -> dict:
+    user_prompt = f"""
+Date: {entry_date}
+
+User Log (plain text):
+{entry_text}
+
+Return only JSON with:
+- carbs_min, carbs_max (g)
+- fiber (0–10)
+- protein (g)
+- fat (g)
+- rating (Compliant / Borderline / High Risk)
+- trend summary (1 line)
+- recommendations (3–7 short points)
+- disclaimer
+"""
+
+    resp = client.responses.create(
+        model=MODEL,
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+        store=False
+    )
+    return json.loads(resp.output_text.strip())
+
+# -------------------------------
+# STREAMLIT UI
 # -------------------------------
 st.set_page_config(page_title="A1C Tracker", layout="wide")
 st.title(APP_TITLE)
@@ -234,90 +160,76 @@ st.title(APP_TITLE)
 try:
     diet_df = read_diet_logs_from_sheet(SHEET_CSV_URL)
 except Exception as e:
-    st.error(f"Failed to read Google Sheet CSV. Error: {e}")
+    st.error(f"Failed to read diet logs from sheet: {e}")
     st.stop()
 
 colA, colB = st.columns([1, 1])
 
 with colA:
-    st.subheader("📝 Log (from Google Sheet)")
-    entry_date = st.date_input("Date", value=date.today()).isoformat()
+    st.subheader("📝 Today’s Log (from Google Sheet)")
+    today_date = st.date_input("Date", value=date.today()).isoformat()
+    today_iso = date.fromisoformat(today_date).isoformat()
 
-    sheet_text = get_entry_text_for_date(diet_df, entry_date)
-    entry_text = st.text_area(
-        "Diet/activity text (auto-loaded from sheet; editable)",
-        value=sheet_text,
-        height=220,
-        placeholder="If blank, add the row in Google Sheet (date, entry_text)."
-    )
+    sheet_text = get_entry_text_for_date(diet_df, today_iso)
+    entry_text = st.text_area("Diet/activity text", value=sheet_text, height=220)
 
-    if st.button("Generate GPT Report (no local DB)"):
+    if st.button("Generate GPT Report"):
         if not entry_text.strip():
-            st.warning("No entry found for this date in the sheet, and the text box is empty.")
+            st.warning("No log text found for this date.")
         else:
-            with st.spinner("Generating report..."):
-                report = generate_report(entry_text=entry_text, entry_date=entry_date)
+            with st.spinner("Generating GPT trend insights…"):
+                report = call_gpt_for_log(entry_text, today_iso)
 
-            # Flatten for dashboard
-            report_flat = dict(report)
-            report_flat["carbs_min"] = report["daily_total_carbs_g"]["min"]
-            report_flat["carbs_max"] = report["daily_total_carbs_g"]["max"]
-            report_flat["fiber"] = report["fiber_score_0_10"]
-            report_flat["protein"] = report["protein_g"]
-            report_flat["fat"] = report["fat_g"]
+            # Store in session history
+            rep = {
+                "date": report["date"],
+                "carbs_min": report["carbs_min"],
+                "carbs_max": report["carbs_max"],
+                "fiber": report["fiber"],
+                "protein": report["protein"],
+                "fat": report["fat"],
+                "rating": report["rating"],
+                "a1c_trend_summary": report["trend summary"],
+                "recommendations": report["recommendations"],
+                "disclaimer": report["disclaimer"]
+            }
 
-            st.session_state["latest_report"] = report_flat
-            st.success("Report generated (not saved locally).")
+            if "report_history" not in st.session_state:
+                st.session_state["report_history"] = []
+
+            # Upsert into session history
+            history = [x for x in st.session_state["report_history"] if x["date"] != rep["date"]]
+            history.append(rep)
+            history.sort(key=lambda x: x["date"])
+            st.session_state["report_history"] = history
+            st.success("Report generated & session dashboard updated.")
 
 with colB:
     st.subheader("📌 Latest GPT Report")
-
-    latest = st.session_state.get("latest_report")
-    if latest:
+    history = st.session_state.get("report_history", [])
+    if history:
+        latest = history[-1]
         st.markdown(f"**Date:** {latest['date']}")
         st.markdown(f"**Rating:** {latest['rating']}")
-        st.markdown(f"**Carbs:** {latest['daily_total_carbs_g']['min']}–{latest['daily_total_carbs_g']['max']} g")
-        st.markdown(f"**Fiber score:** {latest['fiber_score_0_10']:.1f} / 10")
-        st.markdown(f"**Protein:** {latest['protein_g']:.0f} g  |  **Fat:** {latest['fat_g']:.0f} g")
+        st.markdown(f"**Carbs:** {latest['carbs_min']}–{latest['carbs_max']} g")
+        st.markdown(f"**Fiber Score:** {latest['fiber']:.1f} / 10")
+        st.markdown(f"**Protein:** {latest['protein']:.0f} g  |  **Fat:** {latest['fat']:.0f} g")
         st.markdown(f"**Summary:** {latest['a1c_trend_summary']}")
-
-        if latest.get("carb_spike_alerts"):
-            st.markdown("**Carb Spike Alerts**")
-            st.write(latest["carb_spike_alerts"])
-
-        st.markdown("**Recommendations**")
-        st.write(latest["recommendations"])
+        st.write("**Recommendations:**", latest["recommendations"])
         st.caption(latest["disclaimer"])
     else:
-        st.info("Generate a report to see it here.")
+        st.info("No reports generated yet this session.")
 
 st.divider()
-st.subheader("📈 Live Dashboard")
+st.subheader("📈 Live Dashboard (Session History)")
 
-# Build dashboard from generated reports in-session only
-# (If you want persistent dashboard history, store reports back into a Google Sheet tab — see Option B below.)
-if "report_history" not in st.session_state:
-    st.session_state["report_history"] = []
-
-if st.session_state.get("latest_report"):
-    # upsert into in-session history
-    rep = st.session_state["latest_report"]
-    hist = [r for r in st.session_state["report_history"] if r["date"] != rep["date"]]
-    hist.append(rep)
-    hist.sort(key=lambda x: x["date"])
-    st.session_state["report_history"] = hist
-
-history = st.session_state["report_history"]
+history = st.session_state.get("report_history", [])
 if history:
     df = pd.DataFrame(history).sort_values("date").reset_index(drop=True)
-    df["carbs_min"] = df["carbs_min"].astype(float)
-    df["carbs_max"] = df["carbs_max"].astype(float)
-
-    current_pos = df.index[df["date"] == df["date"].max()][0]
-    fig = plot_dashboard(df, int(current_pos))
+    fig = plot_dashboard(df, current_pos=len(df)-1)
     st.pyplot(fig)
 
-    with st.expander("🔎 View raw history (this session)"):
+    with st.expander("🔎 Raw session history"):
         st.dataframe(df[["date","rating","carbs_min","carbs_max","fiber","protein","fat"]], use_container_width=True)
 else:
-    st.info("Dashboard appears after you generate at least one GPT report.")
+    st.info("Dashboard will appear after first GPT report.")

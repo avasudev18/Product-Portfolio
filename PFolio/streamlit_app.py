@@ -13,13 +13,13 @@ def custom_sidebar():
     with st.sidebar.expander("🤖 Thought Leadership & Innovation Lab", expanded=False):
         st.page_link(
             "pages/3_🤖_Thought_Leadership_&_Innovation_Lab.py",
-            label="AI-Powered Agentic Interview Workflow",
-            icon="🧠"
+        #    label="AI-Powered Agentic Interview Workflow",
+        #    icon="🧠"
         )
         st.page_link(
-            "pages/5_🚀_Interview_Prep_Agentic_Workflow.py",
-            label="SmartGardener – Personalized Gardening Assistant",
-            icon="🌱"
+       #     "pages/5_🚀_Interview_Prep_Agentic_Workflow.py",
+       #     label="SmartGardener – Personalized Gardening Assistant",
+       #     icon="🌱"
         )
 
     st.sidebar.divider()

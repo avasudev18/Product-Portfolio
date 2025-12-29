@@ -14,7 +14,7 @@ import google.generativeai as genai
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-SHEET_CSV_URL = os.getenv("SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/1WSWpfIfLvMOnBcZWG-sUD_IxxaxvtWqF/edit?usp=sharing&ouid=113754772063506240841&rtpof=true&sd=true", "")
+SHEET_CSV_URL = os.getenv("SHEET_CSV_URL", "")
 
 if not GEMINI_API_KEY:
     st.error("Missing GEMINI_API_KEY in .env")
@@ -24,6 +24,7 @@ if not SHEET_CSV_URL:
     st.error("Missing SHEET_CSV_URL in .env")
     st.stop()
 
+# Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
@@ -36,10 +37,17 @@ st.title(APP_TITLE)
 # -------------------------------
 @st.cache_data(ttl=60)
 def read_diet_logs_from_sheet(csv_url: str) -> pd.DataFrame:
-    df = pd.read_csv(csv_url)
+    try:
+        df = pd.read_csv(csv_url)
+    except Exception:
+        st.error("Failed to read Google Sheet CSV. Make sure the sheet is published as CSV export.")
+        return pd.DataFrame()
+
     df.columns = [c.strip().lower() for c in df.columns]
     if "date" not in df.columns or "entry_text" not in df.columns:
-        raise ValueError("Sheet must contain columns: date, entry_text")
+        st.error("Sheet must contain columns: date, entry_text")
+        st.stop()
+
     df["date"] = pd.to_datetime(df["date"]).dt.date.astype(str)
     df["entry_text"] = df["entry_text"].fillna("").astype(str)
     return df.sort_values("date")
@@ -83,7 +91,6 @@ Return JSON with:
     try:
         response = gemini_model.generate_content(prompt)
         text = response.text.strip()
-        # Extract JSON from response
         start = text.find("{")
         end = text.rfind("}") + 1
         return json.loads(text[start:end])
